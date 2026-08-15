@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26.2 — Marathon Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #FBFAF7;
+    --surface: #FFFFFF;
+    --ink: #38352C;
+    --ink-soft: #756E5E;
+    --line: #E7E3DA;
+    --sage: #7F9A2A;
+    --sage-bg: #E9EDD6;
+    --terracotta: #C23F14;
+    --terracotta-bg: #F5DED3;
+    --dusty: #82B0CA;
+    --dusty-bg: #E3EEF3;
+    --wine: #9C5240;
+    --wine-bg: #EEDDD5;
+    --gold: #C79A3C;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px 80px;}
+
+  /* header */
+  header.hero{padding:40px 20px 28px;text-align:center;border-bottom:1px solid var(--line);margin-bottom:28px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);}
+  .hero h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:56px;
+    margin:6px 0 4px;
+    letter-spacing:-0.01em;
+  }
+  .hero .sub{font-size:14px;color:var(--ink-soft);}
+  .countdown{
+    display:inline-flex;align-items:baseline;gap:6px;
+    margin-top:18px;padding:8px 18px;
+    background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  }
+  .countdown b{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--terracotta);}
+  .countdown span{font-size:12px;color:var(--ink-soft);}
+
+  /* phase legend */
+  .legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:22px 0 0;font-size:12px;color:var(--ink-soft);}
+  .legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
+
+  /* week nav */
+  .week-nav{
+    display:flex;gap:8px;overflow-x:auto;padding:4px 20px 10px;margin:0 -20px 24px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .week-nav::-webkit-scrollbar{height:0;}
+  .week-pill{
+    flex:0 0 auto;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:9px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .week-pill b{font-weight:500;color:var(--ink);}
+  .week-pill.active{border-color:transparent;color:#fff;}
+  .week-pill.active b{color:#fff;}
+
+  section.card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:26px;
+    margin-bottom:24px;
+  }
+
+  .week-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .week-head .phase-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;display:inline-block;margin-bottom:6px;
+  }
+  .week-head h2{font-family:'Fraunces',serif;font-size:26px;font-weight:500;margin:0;}
+  .week-head .dates{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .week-total{text-align:right;}
+  .week-total b{font-family:'IBM Plex Mono',monospace;font-size:24px;display:block;}
+  .week-total span{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;}
+
+  .day-row{
+    display:flex;align-items:flex-start;gap:14px;
+    padding:13px 0;border-top:1px solid var(--line);
+  }
+  .day-row:first-of-type{border-top:1px solid var(--line);}
+  .day-row.today{background:linear-gradient(90deg, rgba(193,122,69,0.07), transparent);margin:0 -14px;padding:13px 14px;border-radius:10px;border-top:1px solid transparent;}
+
+  .day-marker{flex:0 0 46px;text-align:center;padding-top:2px;}
+  .day-marker .d{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--ink-soft);}
+  .day-marker .date{font-size:10px;color:var(--ink-soft);opacity:.7;}
+  .dot-badge{
+    width:14px;height:14px;border-radius:50%;margin:5px auto;
+    border:2px solid var(--line);
+  }
+  .dot-badge.run{background:var(--sage);border-color:var(--sage);}
+  .dot-badge.cross{background:var(--dusty);border-color:var(--dusty);}
+  .dot-badge.long{width:18px;height:18px;background:var(--terracotta);border-color:var(--terracotta);}
+  .dot-badge.race{background:var(--gold);border-color:var(--gold);}
+  .dot-badge.rest{background:transparent;}
+
+  .day-body{flex:1;}
+  .day-body .label{font-size:14.5px;font-weight:500;}
+  .day-body .detail{font-size:12.5px;color:var(--ink-soft);margin-top:1px;}
+  .today-flag{
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--terracotta);border:1px solid var(--terracotta);border-radius:999px;padding:1px 7px;margin-left:8px;
+  }
+
+  .check{
+    flex:0 0 22px;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;
+    background:var(--surface);
+  }
+  .check.done{background:var(--sage);border-color:var(--sage);}
+  .check.done::after{content:'✓';color:#fff;font-size:13px;}
+
+  h3.section-title{font-family:'Fraunces',serif;font-weight:500;font-size:21px;margin:0 0 14px;}
+  p.lede{font-size:13px;color:var(--ink-soft);margin-top:-8px;margin-bottom:18px;}
+
+  .strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .strength-grid .box{background:var(--paper);border-radius:var(--radius-sm);padding:16px;}
+  .strength-grid .box h4{margin:0 0 8px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sage);}
+  .strength-grid .box p{font-size:13px;margin:0;color:var(--ink);}
+  .mobility-note{margin-top:14px;font-size:13px;background:var(--dusty-bg);padding:14px 16px;border-radius:var(--radius-sm);}
+  .mobility-note b{color:var(--dusty);}
+
+  .tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);cursor:pointer;
+  }
+  .tab.active{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+
+  .targets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .target-box{background:var(--paper);border-radius:var(--radius-sm);padding:12px 14px;}
+  .target-box .k{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--terracotta);}
+  .target-box .n{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);}
+  .target-box .d{font-size:12px;margin-top:3px;}
+
+  .phase-panel{display:none;font-size:13.5px;}
+  .phase-panel.active{display:block;}
+  .phase-panel p{margin:0 0 10px;}
+  .phase-panel b{color:var(--ink);}
+
+  .tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .tips-grid .tip h4{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--terracotta);margin:0 0 8px;}
+  .tips-grid .tip p{font-size:13px;margin:0 0 8px;}
+  .tips-grid .tip.full{grid-column:1 / -1;}
+
+  footer{text-align:center;font-size:11.5px;color:var(--ink-soft);padding-top:10px;}
+
+  @media (max-width:560px){
+    .hero h1{font-size:42px;}
+    .strength-grid,.targets,.tips-grid{grid-template-columns:1fr;}
+    section.card{padding:20px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">26.2 Miles · Race Day Nov 22, 2026</div>
+    <h1>Marathon Training</h1>
+    <div class="sub">Weeks 6–20 · Oklahoma City</div>
+    <div class="countdown"><b id="countdownNum">—</b><span>days to race day</span></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--sage)"></i>Build</span>
+      <span><i class="dot" style="background:var(--terracotta)"></i>Peak</span>
+      <span><i class="dot" style="background:var(--dusty)"></i>Taper</span>
+      <span><i class="dot" style="background:var(--gold)"></i>Race Week</span>
+    </div>
+  </header>
+
+  <nav class="week-nav" id="weekNav"></nav>
+
+  <section class="card" id="weekCard"></section>
+
+  <section class="card">
+    <h3 class="section-title">Strength &amp; Mobility</h3>
+    <p class="lede">Two sessions a week, layered onto your run days. About 20 minutes each, done after the run — never before.</p>
+    <div class="strength-grid">
+      <div class="box">
+        <h4>Strength A — Tuesdays</h4>
+        <p>3×12 single-leg glute bridges/side, 3×10 calf raises (slow eccentric), 3×10 clamshells/side, 2×30s side plank/side.</p>
+      </div>
+      <div class="box">
+        <h4>Strength B — Thursdays</h4>
+        <p>3×10 Bulgarian split squats/side, 3×12 standing band hip abductions/side, 3×15 single-leg calf raises/side, 2×45s plank.</p>
+      </div>
+    </div>
+    <div class="mobility-note"><b>Mobility — Sundays, after your long run:</b> 10 minutes of ankle circles, resistance band inversion/eversion, calf and hip flexor stretching, and foam rolling the IT band and calves. Targets the left ankle pronation directly.</div>
+  </section>
+
+  <section class="card">
+    <h3 class="section-title">Nutrition Guide</h3>
+    <p class="lede">Daily targets, plus phase-specific fueling.</p>
+    <div class="targets">
+      <div class="target-box"><div class="k">0.7 g/lb</div><div class="n">Protein</div><div class="d">Daily, spread across meals — supports repair from running and strength work.</div></div>
+      <div class="target-box"><div class="k">3–5 g/lb</div><div class="n">Carbohydrates</div><div class="d">Higher on long-run and high-mileage days; lower on rest days.</div></div>
+      <div class="target-box"><div class="k">0.5 oz/lb</div><div class="n">Hydration</div><div class="d">Baseline daily fluid; more on hot OKC days and runs over 60 min.</div></div>
+      <div class="target-box"><div class="k">60–90 min</div><div class="n">Pre-run window</div><div class="d">Before runs over 6 mi: simple carbs + small protein (toast + banana, oatmeal).</div></div>
+    </div>
+    <div class="tab-row" id="nutriTabs"></div>
+    <div id="nutriPanels"></div>
+  </section>
+
+  <section class="card">
+    <h3 class="section-title">Tips &amp; Gear</h3>
+    <div class="tips-grid">
+      <div class="tip">
+        <h4>Shoes &amp; Ankle</h4>
+        <p>Get a gait analysis at a specialty running store. Recommended: ASICS GT-2000, Brooks Adrenaline GTS, New Balance 860, or Saucony Guide — medial support without being overly corrective.</p>
+        <p>Rotate two pairs once you're in the build phase; alternating extends foam life and reduces repetitive stress.</p>
+      </div>
+      <div class="tip">
+        <h4>Easy Pace Rule</h4>
+        <p>80% of runs should be easy — full sentences without gasping. Tempo pace is comfortably hard: a few words at a time, not full sentences.</p>
+      </div>
+      <div class="tip">
+        <h4>Tennis + Running</h4>
+        <p>Treat a hard tennis session like a workout day. Don't play a hard match and run long the same day — ankles and calves need 24–48 hours between high-impact sessions.</p>
+      </div>
+      <div class="tip">
+        <h4>Warning Signs</h4>
+        <p>Inside ankle pain (posterior tibial tendinitis) is the classic pronation injury — back off immediately, ice, rest 2–3 days. IT band pain: foam roll IT band, glutes, TFL. Shin splints: cut mileage 25%, softer surfaces, check shoe wear.</p>
+      </div>
+      <div class="tip full">
+        <h4>Race Day</h4>
+        <p>Nothing new on race day — not shoes, socks, nutrition, or clothing. Start slow; crowd energy pulls you out faster than planned. Break the race into thirds: miles 1–9 conservative, 10–18 steady, 19–26 give what you have left.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Built for a first marathon off a tennis + fitness background, accounting for left ankle pronation. Run days Tue/Thu/Sat, long run Sunday, cross-training Wed/Fri.</footer>
+</div>
+
+<script>
+const PHASE_META = {
+  build: {label:'Build Phase', color:'var(--sage)', bg:'var(--sage-bg)'},
+  peak: {label:'Peak Phase', color:'var(--terracotta)', bg:'var(--terracotta-bg)'},
+  taper: {label:'Taper', color:'var(--dusty)', bg:'var(--dusty-bg)'},
+  race: {label:'Race Week', color:'var(--gold)', bg:'#F3EAD2'},
+};
+
+const weeks = [
+{num:6, phase:'build', range:'Aug 10 – 16', total:22, days:[
+  {d:'MON',date:'Aug 10',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Aug 11',type:'run',label:'5 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Aug 12',type:'cross',label:'Cross-train',detail:'30–40 min bike, swim, or elliptical'},
+  {d:'THU',date:'Aug 13',type:'run',label:'4 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Aug 14',type:'cross',label:'Cross-train',detail:'30–40 min, easy effort'},
+  {d:'SAT',date:'Aug 15',type:'run',label:'4 mi easy + strides'},
+  {d:'SUN',date:'Aug 16',type:'long',label:'9 mi long run',detail:'+ mobility work'},
+]},
+{num:7, phase:'build', range:'Aug 17 – 23', total:24, days:[
+  {d:'MON',date:'Aug 17',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Aug 18',type:'run',label:'5 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Aug 19',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Aug 20',type:'run',label:'4 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Aug 21',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Aug 22',type:'run',label:'4 mi with 2 mi tempo effort'},
+  {d:'SUN',date:'Aug 23',type:'long',label:'10 mi long run',detail:'+ mobility work'},
+]},
+{num:8, phase:'build', range:'Aug 24 – 30', total:18, days:[
+  {d:'MON',date:'Aug 24',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Aug 25',type:'run',label:'4 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Aug 26',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'THU',date:'Aug 27',type:'run',label:'3 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Aug 28',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'SAT',date:'Aug 29',type:'run',label:'2 mi easy shakeout'},
+  {d:'SUN',date:'Aug 30',type:'long',label:'4 mi long run',detail:'+ mobility work · recovery week'},
+]},
+{num:9, phase:'build', range:'Aug 31 – Sep 6', total:27, days:[
+  {d:'MON',date:'Aug 31',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Sep 1',type:'run',label:'5 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Sep 2',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Sep 3',type:'run',label:'5 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Sep 4',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Sep 5',type:'run',label:'5 mi with 3 mi tempo'},
+  {d:'SUN',date:'Sep 6',type:'long',label:'11 mi long run',detail:'+ mobility work'},
+]},
+{num:10, phase:'build', range:'Sep 7 – 13', total:29, days:[
+  {d:'MON',date:'Sep 7',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Sep 8',type:'run',label:'6 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Sep 9',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Sep 10',type:'run',label:'5 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Sep 11',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Sep 12',type:'run',label:'5 mi with 3 mi tempo'},
+  {d:'SUN',date:'Sep 13',type:'long',label:'12 mi long run',detail:'+ mobility work'},
+]},
+{num:11, phase:'build', range:'Sep 14 – 20', total:31, days:[
+  {d:'MON',date:'Sep 14',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Sep 15',type:'run',label:'6 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Sep 16',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Sep 17',type:'run',label:'5 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Sep 18',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Sep 19',type:'run',label:'6 mi with 4 mi tempo'},
+  {d:'SUN',date:'Sep 20',type:'long',label:'13 mi long run',detail:'half marathon distance! + mobility'},
+]},
+{num:12, phase:'build', range:'Sep 21 – 27', total:22, days:[
+  {d:'MON',date:'Sep 21',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Sep 22',type:'run',label:'4 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Sep 23',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'THU',date:'Sep 24',type:'run',label:'4 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Sep 25',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'SAT',date:'Sep 26',type:'run',label:'3 mi easy shakeout'},
+  {d:'SUN',date:'Sep 27',type:'long',label:'5 mi long run',detail:'+ mobility work · recovery week'},
+]},
+{num:13, phase:'peak', range:'Sep 28 – Oct 4', total:33, days:[
+  {d:'MON',date:'Sep 28',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Sep 29',type:'run',label:'6 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Sep 30',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Oct 1',type:'run',label:'6 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Oct 2',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Oct 3',type:'run',label:'6 mi with 4 mi tempo'},
+  {d:'SUN',date:'Oct 4',type:'long',label:'14 mi long run',detail:'+ mobility work'},
+]},
+{num:14, phase:'peak', range:'Oct 5 – 11', total:36, days:[
+  {d:'MON',date:'Oct 5',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Oct 6',type:'run',label:'7 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Oct 7',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Oct 8',type:'run',label:'6 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Oct 9',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Oct 10',type:'run',label:'7 mi with 5 mi at marathon pace'},
+  {d:'SUN',date:'Oct 11',type:'long',label:'16 mi long run',detail:'+ mobility work'},
+]},
+{num:15, phase:'peak', range:'Oct 12 – 18', total:25, days:[
+  {d:'MON',date:'Oct 12',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Oct 13',type:'run',label:'5 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Oct 14',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'THU',date:'Oct 15',type:'run',label:'5 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Oct 16',type:'cross',label:'Cross-train',detail:'easy effort, or rest if needed'},
+  {d:'SAT',date:'Oct 17',type:'run',label:'4 mi easy shakeout'},
+  {d:'SUN',date:'Oct 18',type:'long',label:'6 mi long run',detail:'+ mobility work · recovery week'},
+]},
+{num:16, phase:'peak', range:'Oct 19 – 25', total:38, days:[
+  {d:'MON',date:'Oct 19',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Oct 20',type:'run',label:'7 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Oct 21',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Oct 22',type:'run',label:'6 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Oct 23',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Oct 24',type:'run',label:'7 mi with 5 mi at marathon pace'},
+  {d:'SUN',date:'Oct 25',type:'long',label:'18 mi long run',detail:'+ mobility work'},
+]},
+{num:17, phase:'peak', range:'Oct 26 – Nov 1', total:40, days:[
+  {d:'MON',date:'Oct 26',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Oct 27',type:'run',label:'7 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Oct 28',type:'cross',label:'Cross-train'},
+  {d:'THU',date:'Oct 29',type:'run',label:'6 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Oct 30',type:'cross',label:'Cross-train'},
+  {d:'SAT',date:'Oct 31',type:'run',label:'8 mi with 6 mi at marathon pace'},
+  {d:'SUN',date:'Nov 1',type:'long',label:'20 mi long run',detail:'your peak run! + mobility'},
+]},
+{num:18, phase:'taper', range:'Nov 2 – 8', total:26, days:[
+  {d:'MON',date:'Nov 2',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Nov 3',type:'run',label:'6 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Nov 4',type:'cross',label:'Cross-train',detail:'easy effort'},
+  {d:'THU',date:'Nov 5',type:'run',label:'5 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Nov 6',type:'cross',label:'Cross-train',detail:'easy effort'},
+  {d:'SAT',date:'Nov 7',type:'run',label:'5 mi with 3 mi at marathon pace'},
+  {d:'SUN',date:'Nov 8',type:'long',label:'10 mi long run',detail:'+ mobility work'},
+]},
+{num:19, phase:'taper', range:'Nov 9 – 15', total:16, days:[
+  {d:'MON',date:'Nov 9',type:'rest',label:'Rest'},
+  {d:'TUE',date:'Nov 10',type:'run',label:'4 mi easy run',detail:'+ Strength A'},
+  {d:'WED',date:'Nov 11',type:'cross',label:'Cross-train',detail:'light, easy effort'},
+  {d:'THU',date:'Nov 12',type:'run',label:'3 mi easy run',detail:'+ Strength B'},
+  {d:'FRI',date:'Nov 13',type:'cross',label:'Cross-train',detail:'light, easy effort'},
+  {d:'SAT',date:'Nov 14',type:'run',label:'3 mi easy with 4 strides'},
+  {d:'SUN',date:'Nov 15',type:'long',label:'6 mi easy run',detail:'shakeout + mobility, before race week'},
+]},
+{num:20, phase:'race', range:'Nov 16 – 22', total:8, days:[
+  {d:'MON',date:'Nov 16',type:'rest',label:'Rest',detail:'light walk only'},
+  {d:'TUE',date:'Nov 17',type:'run',label:'3 mi easy shakeout run',detail:'+ ankle circles, band work, foam roll'},
+  {d:'WED',date:'Nov 18',type:'run',label:'2 mi easy + 4 strides'},
+  {d:'THU',date:'Nov 19',type:'rest',label:'Rest'},
+  {d:'FRI',date:'Nov 20',type:'run',label:'2 mi very easy jog + strides',detail:'stay off feet the rest of the day'},
+  {d:'SAT',date:'Nov 21',type:'rest',label:'Rest',detail:'eat well, sleep early'},
+  {d:'SUN',date:'Nov 22',type:'race',label:'RACE DAY',detail:'26.2 miles — go get it'},
+]},
+];
+
+const RACE_DATE = new Date('2026-11-22T00:00:00');
+
+// ---- storage helpers (personal, single key) ----
+let completed = {};
+async function loadCompleted(){
+  try{
+    const res = await window.storage.get('completed_days', false);
+    completed = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ completed = {}; }
+}
+async function saveCompleted(){
+  try{ await window.storage.set('completed_days', JSON.stringify(completed), false); }
+  catch(e){ /* best effort */ }
+}
+
+let activeWeek = 6;
+
+function todayString(){
+  const t = new Date();
+  const opts = {month:'short', day:'numeric'};
+  return t.toLocaleDateString('en-US', opts).replace(',', '');
+}
+
+function renderCountdown(){
+  const now = new Date();
+  const diff = Math.ceil((RACE_DATE - now) / (1000*60*60*24));
+  document.getElementById('countdownNum').textContent = diff > 0 ? diff : (diff === 0 ? "It's today" : 'Complete');
+}
+
+function renderNav(){
+  const nav = document.getElementById('weekNav');
+  nav.innerHTML = '';
+  weeks.forEach(w=>{
+    const meta = PHASE_META[w.phase];
+    const pill = document.createElement('div');
+    pill.className = 'week-pill' + (w.num===activeWeek ? ' active':'');
+    if(w.num===activeWeek){ pill.style.background = meta.color; }
+    pill.innerHTML = `<b>W${w.num}</b> · ${w.range.split('–')[0].trim()}`;
+    pill.onclick = ()=>{ activeWeek = w.num; renderNav(); renderWeek(); };
+    nav.appendChild(pill);
+  });
+}
+
+function isToday(dateStr){
+  return dateStr === todayString();
+}
+
+function renderWeek(){
+  const w = weeks.find(x=>x.num===activeWeek);
+  const meta = PHASE_META[w.phase];
+  const card = document.getElementById('weekCard');
+
+  let rows = w.days.map(day=>{
+    const key = `${w.num}-${day.d}`;
+    const done = !!completed[key];
+    const todayFlag = isToday(day.date) ? '<span class="today-flag">Today</span>' : '';
+    const showCheck = day.type !== 'rest' && day.type !== 'race';
+    return `
+      <div class="day-row ${isToday(day.date)?'today':''}">
+        <div class="day-marker">
+          <div class="d">${day.d}</div>
+          <div class="dot-badge ${day.type}"></div>
+          <div class="date">${day.date}</div>
+        </div>
+        <div class="day-body">
+          <div class="label">${day.label}${todayFlag}</div>
+          ${day.detail ? `<div class="detail">${day.detail}</div>` : ''}
+        </div>
+        ${showCheck ? `<div class="check ${done?'done':''}" data-key="${key}"></div>` : '<div style="flex:0 0 22px;"></div>'}
+      </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="week-head">
+      <div>
+        <span class="phase-tag" style="background:${meta.bg};color:${meta.color}">${meta.label}</span>
+        <h2>Week ${w.num}</h2>
+        <div class="dates">${w.range}, 2026</div>
+      </div>
+      <div class="week-total">
+        <b style="color:${meta.color}">${w.total}</b>
+        <span>miles</span>
+      </div>
+    </div>
+    ${rows}
+  `;
+
+  card.querySelectorAll('.check').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const key = el.getAttribute('data-key');
+      completed[key] = !completed[key];
+      el.classList.toggle('done');
+      await saveCompleted();
+    });
+  });
+}
+
+// ---- nutrition tabs ----
+const nutrition = {
+  build: `<p><b>Weeks 6–12.</b> Start practicing race-day fueling on long runs over 8 miles — begin with one gel or chew around mile 5–6, then every 45 minutes after.</p>
+    <p>Carb-load lightly the day before runs over 10 miles: extra rice, potatoes, or pasta at dinner.</p>
+    <p>Rising mileage can deplete iron — add electrolytes to water on long runs in OKC heat.</p>`,
+  peak: `<p><b>Weeks 13–17.</b> Your highest-calorie-need stretch — 36–40 mi weeks burn real calories, so don't under-eat. Respond to increased hunger with more food.</p>
+    <p>Dial in your exact race-day fueling on the 18- and 20-mile long runs: same gel brand, same timing, same hydration setup every time.</p>
+    <p>Magnesium and potassium (bananas, potatoes, leafy greens) help with cramping during peak volume.</p>`,
+  taper: `<p><b>Weeks 18–19.</b> Reduce portions slightly as mileage drops — appetite often stays high out of habit. Keep protein steady to preserve muscle.</p>
+    <p>Save the big carb-load for race week, not now. Taper weeks are about normal, clean eating.</p>`,
+  race: `<p><b>Week 20.</b> Wed–Fri before the race: increase carbs to 4–5 g/lb bodyweight, moderate fiber and fat to avoid GI distress — rice, pasta, bagels, bananas.</p>
+    <p>Race morning, 3 hours before: familiar, carb-heavy, low-fiber breakfast — oatmeal, toast with honey, or a bagel. Avoid anything new.</p>
+    <p>During the race: gel or chew every 45 minutes starting mile 4–5, water or sports drink at every aid station you've trained with.</p>`,
+};
+let activeNutriTab = 'build';
+function renderNutrition(){
+  const tabs = document.getElementById('nutriTabs');
+  tabs.innerHTML = '';
+  Object.keys(nutrition).forEach(key=>{
+    const t = document.createElement('div');
+    t.className = 'tab' + (key===activeNutriTab ? ' active':'');
+    t.textContent = PHASE_META[key].label;
+    t.onclick = ()=>{ activeNutriTab = key; renderNutrition(); };
+    tabs.appendChild(t);
+  });
+  document.getElementById('nutriPanels').innerHTML =
+    `<div class="phase-panel active">${nutrition[activeNutriTab]}</div>`;
+}
+
+async function init(){
+  await loadCompleted();
+  renderCountdown();
+  renderNav();
+  renderWeek();
+  renderNutrition();
+}
+init();
+</script>
+</body>
+</html>
